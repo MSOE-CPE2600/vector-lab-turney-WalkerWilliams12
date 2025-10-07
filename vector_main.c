@@ -12,6 +12,7 @@
  */
 #include "vector.h"
 
+//Main to run the entire program
 int main(int argc, char *argv[]) {
     if (argc > 1 && strcmp(argv[1], "-h") == 0) {
         display_help();
