@@ -1,0 +1,108 @@
+/**
+ * @file vector_info.c
+ * @brief defines functions to show vectors on the console and run the program
+ * 
+ * Course: CPE2600
+ * Section: 111
+ * Assignment: Lab 5
+ * Name: Walker Williams
+ * 
+ */
+#include "vector.h"
+
+static void display_vector(const char *name, Vector v) {
+    printf("%s = (%.2f, %.2f, %.2f)\n", name, v.x, v.y, v.z);
+}
+
+static int is_number(const char *s) {
+    char *end;
+    strtod(s, &end);
+    return *end == '\0';
+}
+
+void run_ui() {
+    char input[100];
+    clear_vectors();
+    printf("Welcome to MiniMat Vector Calculator.\nType 'help' for commands.\n");
+
+    while (1) {
+        printf("minimat> ");
+        if (!fgets(input, sizeof(input), stdin)) break;
+
+        input[strcspn(input, "\n")] = 0;
+        if (strcmp(input, "quit") == 0) break;
+        if (strcmp(input, "help") == 0) { display_help(); continue; }
+        if (strcmp(input, "clear") == 0) { clear_vectors(); continue; }
+        if (strcmp(input, "list") == 0) { list_vectors(); continue; }
+
+        // Handle assignment: name = ...
+        char var1[20], op[5], var2[20], var3[20];
+        double a, b, c;
+        if (sscanf(input, "%s = %lf %lf %lf", var1, &a, &b, &c) == 4 ||
+            sscanf(input, "%s = %lf,%lf,%lf", var1, &a, &b, &c) == 4) {
+            Vector v = {"", a, b, c, 1};
+            strcpy(v.name, var1);
+            add_vector(v);
+            display_vector(v.name, v);
+            continue;
+        }
+
+        // Operation with assignment (ex: c = a + b)
+        if (sscanf(input, "%s = %s %s %s", var1, var2, op, var3) == 4) {
+            Vector *v1 = find_vector(var2);
+            Vector *v2 = find_vector(var3);
+            if (!v1 || !v2) { printf("Error: Unknown vector.\n"); continue; }
+            Vector result;
+            if (strcmp(op, "+") == 0) result = add(*v1, *v2);
+            else if (strcmp(op, "-") == 0) result = subtract(*v1, *v2);
+            else { printf("Unknown operator.\n"); continue; }
+            strcpy(result.name, var1);
+            add_vector(result);
+            display_vector(result.name, result);
+            continue;
+        }
+
+        // Simple operations without assignment
+        if (sscanf(input, "%s %s %s", var1, op, var2) == 3) {
+            Vector *v1 = find_vector(var1);
+            Vector *v2 = find_vector(var2);
+            if (v1 && v2) {
+                Vector res;
+                if (strcmp(op, "+") == 0) res = add(*v1, *v2);
+                else if (strcmp(op, "-") == 0) res = subtract(*v1, *v2);
+                else { printf("Unknown operator.\n"); continue; }
+                display_vector("ans", res);
+            } else if (v1 && is_number(var2) && strcmp(op, "*") == 0) {
+                Vector res = scalar_multiply(*v1, atof(var2));
+                display_vector("ans", res);
+            } else if (is_number(var1) && v2 && strcmp(op, "*") == 0) {
+                Vector res = scalar_multiply(*v2, atof(var1));
+                display_vector("ans", res);
+            } else {
+                printf("Invalid operation.\n");
+            }
+            continue;
+        }
+
+        // Display vector
+        Vector *v = find_vector(input);
+        if (v) {
+            display_vector(v->name, *v);
+            continue;
+        }
+
+        printf("Invalid command. Type 'help' for list of commands.\n");
+    }
+
+    printf("Goodbye!\n");
+}
+
+void display_help() {
+    printf("Commands:\n");
+    printf("  var = x y z        | create vector\n");
+    printf("  var1 + var2        | add vectors\n");
+    printf("  var1 - var2        | subtract vectors\n");
+    printf("  var * num          | scalar multiply\n");
+    printf("  result = a + b     | assign result\n");
+    printf("  list, clear, quit  | manage program\n");
+}
