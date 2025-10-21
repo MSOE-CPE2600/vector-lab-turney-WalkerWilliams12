@@ -10,19 +10,31 @@
  */
 #include "vector.h"
 
+/**
+* @brief Prints the vector information
+* @param name - name of the vector
+* @param v - vector for data access
+*/
 static void display_vector(const char *name, Vector v) {
     printf("%s = (%.2f, %.2f, %.2f)\n", name, v.x, v.y, v.z);
 }
 
+/**
+* @brief checks if input is a number
+* @param s string input from user
+* @return if input was number or not
+*/
 static int is_number(const char *s) {
     char *end;
     strtod(s, &end);
     return *end == '\0';
 }
 
-void run_ui() {
+/**
+* @brief function that runs the entire base of the vector calculator
+*/
+void vector_program() {
     char input[100];
-    clear_vectors();
     printf("Welcome to MiniMat Vector Calculator.\nType 'help' for commands.\n");
 
     while (1) {
@@ -35,7 +47,7 @@ void run_ui() {
         if (strcmp(input, "clear") == 0) { clear_vectors(); continue; }
         if (strcmp(input, "list") == 0) { list_vectors(); continue; }
 
-        // Handle assignment: name = ...
+        // Handle assignment
         char var1[20], op[5], var2[20], var3[20];
         double a, b, c;
         if (sscanf(input, "%s = %lf %lf %lf", var1, &a, &b, &c) == 4 ||
@@ -47,7 +59,7 @@ void run_ui() {
             continue;
         }
 
-        // Operation with assignment (ex: c = a + b)
+        // Operation with assignment (c = a + b)
         if (sscanf(input, "%s = %s %s %s", var1, var2, op, var3) == 4) {
             Vector *v1 = find_vector(var2);
             Vector *v2 = find_vector(var3);
@@ -62,7 +74,7 @@ void run_ui() {
             continue;
         }
 
-        // Simple operations without assignment
+        // Simple operations without assignment (a + b)
         if (sscanf(input, "%s %s %s", var1, op, var2) == 3) {
             Vector *v1 = find_vector(var1);
             Vector *v2 = find_vector(var2);
@@ -94,9 +106,13 @@ void run_ui() {
         printf("Invalid command. Type 'help' for list of commands.\n");
     }
 
+    //Exit statement
     printf("Goodbye!\n");
 }
 
+/**
+* @brief Prints list of commands to be used in program
+*/
 void display_help() {
     printf("Commands:\n");
     printf("  var = x y z        | create vector\n");
