@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -Wall
+CFLAGS=-c -Wall -g
 LDFLAGS=
 SOURCES= vector_main.c vector_math.c vector_data.c vector_info.c 
 OBJECTS=$(SOURCES:.c=.o)

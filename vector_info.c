@@ -10,20 +10,38 @@
  */
 #include "vector.h"
 
+/**
+* @brief Prints the vector information
+* @param name - name of the vector
+* @param v - vector for data access
+*/
 static void display_vector(const char *name, Vector v) {
     printf("%s = (%.2f, %.2f, %.2f)\n", name, v.x, v.y, v.z);
 }
 
+/**
+* @brief checks if input is a number
+* @param s string input from user
+* @return if input was number or not
+*/
 static int is_number(const char *s) {
     char *end;
     strtod(s, &end);
     return *end == '\0';
 }
 
-void run_ui() {
+/**
+* @brief function that runs the entire base of the vector calculator
+*/
+void vector_program() {
     char input[100];
-    clear_vectors();
     printf("Welcome to MiniMat Vector Calculator.\nType 'help' for commands.\n");
+    
+    // Initialize dynamic array
+    Vector *vectors = NULL;
+    int capacity = 0;
+    int count = 0;
+    storage(&vectors, &capacity, &count);
 
     while (1) {
         printf("minimat> ");
@@ -32,40 +50,54 @@ void run_ui() {
         input[strcspn(input, "\n")] = 0;
         if (strcmp(input, "quit") == 0) break;
         if (strcmp(input, "help") == 0) { display_help(); continue; }
-        if (strcmp(input, "clear") == 0) { clear_vectors(); continue; }
-        if (strcmp(input, "list") == 0) { list_vectors(); continue; }
+        if (strcmp(input, "clear") == 0) { clear_vectors(vectors, &count); continue; }
+        if (strcmp(input, "list") == 0) { list_vectors(vectors, count); continue; }
 
-        // Handle assignment: name = ...
+        // File operations
+        char cmd[10], filename[100];
+        if (sscanf(input, "%s %s", cmd, filename) == 2) {
+            if (strcmp(cmd, "load") == 0) {
+                load_vectors(filename, &vectors, &capacity, &count);
+                continue;
+            } else if (strcmp(cmd, "save") == 0) {
+                save_vectors(filename, vectors, count);
+                continue;
+            }
+        }
+
+        // Vector assignment
         char var1[20], op[5], var2[20], var3[20];
         double a, b, c;
         if (sscanf(input, "%s = %lf %lf %lf", var1, &a, &b, &c) == 4 ||
             sscanf(input, "%s = %lf,%lf,%lf", var1, &a, &b, &c) == 4) {
             Vector v = {"", a, b, c, 1};
             strcpy(v.name, var1);
-            add_vector(v);
-            display_vector(v.name, v);
+            if (add_vector(v, &vectors, &capacity, &count)) {
+                display_vector(v.name, v);
+            }
             continue;
         }
 
-        // Operation with assignment (ex: c = a + b)
+        // Operation with assignment (c = a + b)
         if (sscanf(input, "%s = %s %s %s", var1, var2, op, var3) == 4) {
-            Vector *v1 = find_vector(var2);
-            Vector *v2 = find_vector(var3);
+            Vector *v1 = find_vector(var2, vectors, count);
+            Vector *v2 = find_vector(var3, vectors, count);
             if (!v1 || !v2) { printf("Error: Unknown vector.\n"); continue; }
             Vector result;
             if (strcmp(op, "+") == 0) result = add(*v1, *v2);
             else if (strcmp(op, "-") == 0) result = subtract(*v1, *v2);
             else { printf("Unknown operator.\n"); continue; }
             strcpy(result.name, var1);
-            add_vector(result);
-            display_vector(result.name, result);
+            if (add_vector(result, &vectors, &capacity, &count)) {
+                display_vector(result.name, result);
+            }
             continue;
         }
 
-        // Simple operations without assignment
+        // Simple operations without assignment (a + b)
         if (sscanf(input, "%s %s %s", var1, op, var2) == 3) {
-            Vector *v1 = find_vector(var1);
-            Vector *v2 = find_vector(var2);
+            Vector *v1 = find_vector(var1, vectors, count);
+            Vector *v2 = find_vector(var2, vectors, count);
             if (v1 && v2) {
                 Vector res;
                 if (strcmp(op, "+") == 0) res = add(*v1, *v2);
@@ -84,8 +116,8 @@ void run_ui() {
             continue;
         }
 
-        // Display vector
-        Vector *v = find_vector(input);
+        // Display single vector
+        Vector *v = find_vector(input, vectors, count);
         if (v) {
             display_vector(v->name, *v);
             continue;
@@ -94,9 +126,14 @@ void run_ui() {
         printf("Invalid command. Type 'help' for list of commands.\n");
     }
 
+    // Free memory
+    free_storage(&vectors, &capacity, &count);
     printf("Goodbye!\n");
 }
 
+/**
+* @brief Prints list of commands to be used in program
+*/
 void display_help() {
     printf("Commands:\n");
     printf("  var = x y z        | create vector\n");
@@ -104,5 +141,7 @@ void display_help() {
     printf("  var1 - var2        | subtract vectors\n");
     printf("  var * num          | scalar multiply\n");
     printf("  result = a + b     | assign result\n");
+    printf("  load <file>        | load vectors from CSV file\n");
+    printf("  save <file>        | save vectors to CSV file\n");
     printf("  list, clear, quit  | manage program\n");
 }
