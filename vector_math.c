@@ -45,3 +45,4 @@ Vector scalar_multiply(Vector v, double scalar)
     Vector r = {"", v.x * scalar, v.y * scalar, v.z * scalar, 1};
     return r;
 }
+

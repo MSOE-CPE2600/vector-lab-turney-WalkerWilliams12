@@ -209,3 +209,4 @@ int save_vectors(const char *filename, Vector *vectors, int count) {
     printf("Saved %d vectors to '%s'\n", saved, filename);
     return saved;
 }
+
