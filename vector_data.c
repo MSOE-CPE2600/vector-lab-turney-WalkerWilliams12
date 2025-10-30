@@ -7,6 +7,7 @@
  * Assignment: Lab 5
  * Name: Walker Williams
  * 
+ * //Data is not storing more than one variable at a time right now.
  */
 #include "vector.h"
 #include <stdlib.h>
